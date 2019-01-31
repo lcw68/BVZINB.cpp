@@ -110,10 +110,9 @@ long double *dBvZINB4_Expt(int x, int y, double a0, double a1, double a2, double
 		}
 	}
 	//cout << sum_A_mat << "A"<<sum_C_mat<<"C"<<endl;
-	
 	if (l1_B < -200 && log(l2_B + l3_B + l4_B) < 0)
 	{
-		adj_B1 = ((-l1_B - 200)*1.0 / 100) * 100; // prevent exp(l1_B) from being 0
+	    adj_B1 = (int(-l1_B - 200) / 100 * 100); // prevent exp(l1_B) from being 0
 	    l1_B = l1_B + adj_B1;
 	}
 	l1_B = exp(l1_B) * p1;
@@ -162,6 +161,7 @@ long double *dBvZINB4_Expt(int x, int y, double a0, double a1, double a2, double
 	}
 	if(log(sum_AC) > 200)
 	{
+		cout <<">"<<endl;
 		adj_A = adj_A + 100;
     	adj_C = adj_C + 100;
     	sum_AC = 0;
@@ -195,9 +195,10 @@ long double *dBvZINB4_Expt(int x, int y, double a0, double a1, double a2, double
 			}
 	    }
 	}
+	//cout << adj_A<<" "<<"sumA"<<" "<<sum_A_mat<<endl;
 	long double l_sum =0;
-	//cout << sum_AC << " "<< l2_B << endl;
 	l_sum = sum_AC * l1_B + sum_A_mat * (l2_B +  l3_B +  l4_B) * exp(-adj_C);
+		//cout << "lb "<< l1_B << endl;
 
 	if (l_sum == 0) 
 	{
@@ -223,7 +224,7 @@ long double *dBvZINB4_Expt(int x, int y, double a0, double a1, double a2, double
 	  R2_E3_B = (float)b1/(1 + b2);
 	  R2_E4_B = (float)b1;
 	  
-	  double log_R0_E = 0,log_R1_E = 0,log_R2_E = 0,R0_E = 0,R1_E = 0,R2_E = 0;
+	  long double log_R0_E = 0,log_R1_E = 0,log_R2_E = 0,R0_E = 0,R1_E = 0,R2_E = 0;
 	  for(int i = 0;i <= x;i++)
 	  {
 	  	log_R0_mat2[i] = l2_A_mat[i] * (log_R0_E2(x,a0,i) + log(R0_E2_B));
@@ -231,13 +232,14 @@ long double *dBvZINB4_Expt(int x, int y, double a0, double a1, double a2, double
 	  	log_R2_mat2[i] = l2_A_mat[i] * (boost::math::digamma(a2)+log(R2_E2_B));
 	  	for(int j = 0;j <= y;j++)
 	  	{
-	  		R0_mat[i][j] = R0_E1(x,y,i,j,a0);
-	  		R0_mat[i][j] = R0_mat[i][j]*l_A_mat[i][j];
+	  		R0_mat[i][j] = R0_E1(x,y,i,j,a0)*l_A_mat[i][j];			
+			R1_mat[i][j] = R1_E1(i,a1) * l_A_mat[i][j];
+			R2_mat[i][j] = R2_E1(j,a2) * l_A_mat[i][j];
+			
 			R0_E += R0_mat[i][j] * l_C_mat[i][j] * exp(adj_sum) * l1_B * R0_E1_B + R0_mat[i][j] * (l2_B * R0_E2_B + l3_B * R0_E3_B + l4_B * R0_E4_B)*exp(-adj_C + adj_sum);
-			R1_mat[i][j] = R1_E1(i,a1);
-			R2_mat[i][j] = R2_E1(j,a2);
-			R1_mat[i][j] = R1_mat[i][j] * l_A_mat[i][j];
-			R2_mat[i][j] = R2_mat[i][j] * l_A_mat[i][j];
+			R1_E += R1_mat[i][j] * l_C_mat[i][j] * exp(adj_sum) * l1_B * R1_E1_B + R1_mat[i][j] * (l2_B * R1_E2_B + l3_B * R1_E3_B + l4_B * R1_E4_B)*exp(-adj_C + adj_sum);
+			R2_E += R2_mat[i][j] * l_C_mat[i][j] * exp(adj_sum) * l1_B * R2_E1_B + R2_mat[i][j] * (l2_B * R2_E2_B + l3_B * R2_E3_B + l4_B * R2_E4_B)*exp(-adj_C + adj_sum);
+
 			log_R0_mat[i][j] = (log_R0_E1(x,y,i,j,a0) + log(R0_E1_B)) * l_A_mat[i][j];
 			log_R1_mat[i][j] = l_A_mat[i][j] * (log_R1_E1(i,a1) + log (R1_E1_B));
 			log_R2_mat[i][j] = (log_R2_E1(j,a2) + log(R2_E1_B)) * l_A_mat[i][j];
@@ -245,8 +247,6 @@ long double *dBvZINB4_Expt(int x, int y, double a0, double a1, double a2, double
 			log_R0_E += log_R0_mat[i][j] * l_C_mat[i][j] * exp(adj_sum - adj_C) * l1_B;
 			log_R1_E += log_R1_mat[i][j] * l_C_mat[i][j] * exp(adj_sum - adj_C) * l1_B;
 			log_R2_E += log_R2_mat[i][j] * l_C_mat[i][j] * exp(adj_sum - adj_C) * l1_B;
-			R1_E += R1_mat[i][j] * l_C_mat[i][j] * exp(adj_sum) * l1_B * R1_E1_B + R1_mat[i][j] * (l2_B * R1_E2_B + l3_B * R1_E3_B + l4_B * R1_E4_B)*exp(-adj_C + adj_sum);
-			R2_E += R2_mat[i][j] * l_C_mat[i][j] * exp(adj_sum) * l1_B * R2_E1_B + R2_mat[i][j] * (l2_B * R2_E2_B + l3_B * R2_E3_B + l4_B * R2_E4_B)*exp(-adj_C + adj_sum);
 		}
 		log_R0_E += (log_R0_mat2[i] * l2_B) * exp(adj_sum); 
 		log_R1_E += (log_R1_mat2[i] * l2_B) * exp(adj_sum); 
@@ -273,7 +273,7 @@ long double *dBvZINB4_Expt(int x, int y, double a0, double a1, double a2, double
 	  log_R2_E = log_R2_E + (boost::math::digamma(a2) + log(b1)) * exp(adj_sum) * l4_B;
 	  log_R2_E = log_R2_E * 1.0 / l_sum; 
 	
-	 double E_E1 = sum_AC * exp(adj_sum) * l1_B;
+	  double E_E1 = sum_AC * exp(adj_sum) * l1_B;
 	  double E_E2 = sum_A_mat * l2_B *exp(-adj_C + adj_sum);
 	  double E_E3 = sum_A_mat * l3_B *exp(-adj_C + adj_sum);
 	  double E_E4 = sum_A_mat * l4_B *exp(-adj_C + adj_sum);
